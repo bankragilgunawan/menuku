@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>🎵 Web Music Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #0f2027;
+      --text: #fff;
+      --accent: #1de9b6;
+      --cover: url('https://i.imgur.com/0Xw7QeE.png');
+    }
+
+    body.dark {
+      --bg: #0f2027;
+      --text: #fff;
+    }
+    body.light {
+      --bg: #f4f4f4;
+      --text: #222;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 20px;
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.8rem;
+      margin: 0;
+    }
+
+    .player {
+      max-width: 420px;
+      margin: auto;
+      background: rgba(255,255,255,0.06);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+      backdrop-filter: blur(10px);
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .cover {
+      width: 100%;
+      height: 220px;
+      background: #ccc var(--cover) center/cover no-repeat;
+      border-radius: 15px;
+      transition: transform 0.3s ease;
+    }
+
+    .cover:hover {
+      transform: scale(1.02);
+    }
+
+    .title {
+      margin-top: 12px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: space-around;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 50px;
+      background: var(--accent);
+      color: #000;
+      cursor: pointer;
+      margin: 6px;
+      font-weight: bold;
+      transition: background 0.3s ease, transform 0.2s ease;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      background: #00c9a7;
+    }
+
+    .progress-container {
+      height: 6px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 5px;
+      margin: 12px 0;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .progress {
+      height: 100%;
+      width: 0%;
+      background: white;
+      border-radius: 5px;
+    }
+
+    .time {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      opacity: 0.8;
+    }
+
+    input[type="file"] {
+      margin-top: 10px;
+      display: block;
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border: none;
+      padding: 10px;
+      border-radius: 10px;
+      color: inherit;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 10px;
+      max-height: 180px;
+      overflow-y: auto;
+      border-radius: 10px;
+    }
+
+    li {
+      padding: 8px 12px;
+      cursor: pointer;
+      border-bottom: 1px dashed rgba(255,255,255,0.1);
+      transition: background 0.2s ease;
+    }
+
+    li:hover {
+      background: rgba(255,255,255,0.1);
+    }
+
+    li.active {
+      font-weight: bold;
+      color: var(--accent);
+      background: rgba(255,255,255,0.1);
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .top-bar button {
+      font-size: 1.2rem;
+      padding: 6px 12px;
+    }
+
+  </style>
+</head>
+<body class="dark">
+
+<div class="player">
+  <div class="top-bar">
+    <h1>🎵 Musikku</h1>
+    <button onclick="toggleTheme()">🌓</button>
+  </div>
+
+  <div class="cover" id="cover"></div>
+  <div class="title" id="songTitle">Belum ada lagu</div>
+
+  <div class="progress-container" onclick="seek(event)">
+    <div class="progress" id="progress"></div>
+  </div>
+  <div class="time">
+    <span id="current">0:00</span>
+    <span id="duration">0:00</span>
+  </div>
+
+  <div class="controls">
+    <button onclick="prev()">⏮</button>
+    <button onclick="togglePlay()" id="playBtn">▶</button>
+    <button onclick="next()">⏭</button>
+    <button onclick="toggleShuffle()">🔀</button>
+    <button onclick="toggleRepeat()">🔁</button>
+  </div>
+
+  <input type="file" accept="audio/*" multiple onchange="handleFiles(this.files)">
+  <ul id="playlist"></ul>
+</div>
+
+<audio id="audio" ontimeupdate="updateProgress()" onended="handleEnd()"></audio>
+
+<script>
+let audio = document.getElementById("audio");
+let playlist = [];
+let currentIndex = 0;
+let isShuffle = false;
+let isRepeat = false;
+
+// THEME TOGGLE
+function toggleTheme() {
+  document.body.classList.toggle("dark");
+  document.body.classList.toggle("light");
+}
+
+// INIT: Load dari localStorage
+if (localStorage.getItem("playlist")) {
+  playlist = JSON.parse(localStorage.getItem("playlist"));
+  currentIndex = parseInt(localStorage.getItem("currentIndex") || 0);
+  loadSong(currentIndex);
+}
+
+// HANDLE FILE UPLOAD
+function handleFiles(files) {
+  for (let file of files) {
+    playlist.push({ name: file.name, file: URL.createObjectURL(file) });
+  }
+  currentIndex = playlist.length - files.length;
+  saveData();
+  loadSong(currentIndex);
+}
+
+// LOAD SONG
+function loadSong(index) {
+  if (!playlist[index]) return;
+  audio.src = playlist[index].file;
+  document.getElementById("songTitle").textContent = playlist[index].name;
+  audio.play();
+  updatePlaylistUI();
+  document.getElementById("playBtn").textContent = "⏸";
+  saveData();
+}
+
+// PLAY/PAUSE
+function togglePlay() {
+  if (audio.paused) {
+    audio.play();
+    document.getElementById("playBtn").textContent = "⏸";
+  } else {
+    audio.pause();
+    document.getElementById("playBtn").textContent = "▶";
+  }
+}
+
+// NEXT / PREV
+function next() {
+  if (isShuffle) {
+    currentIndex = Math.floor(Math.random() * playlist.length);
+  } else {
+    currentIndex = (currentIndex + 1) % playlist.length;
+  }
+  loadSong(currentIndex);
+}
+function prev() {
+  currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+  loadSong(currentIndex);
+}
+
+// REPEAT & SHUFFLE
+function toggleShuffle() {
+  isShuffle = !isShuffle;
+  alert("Shuffle: " + (isShuffle ? "ON" : "OFF"));
+}
+function toggleRepeat() {
+  isRepeat = !isRepeat;
+  alert("Repeat: " + (isRepeat ? "ON" : "OFF"));
+}
+function handleEnd() {
+  if (isRepeat) {
+    loadSong(currentIndex);
+  } else {
+    next();
+  }
+}
+
+// PROGRESS
+function updateProgress() {
+  if (!audio.duration) return;
+  const percent = (audio.currentTime / audio.duration) * 100;
+  document.getElementById("progress").style.width = percent + "%";
+  document.getElementById("current").textContent = formatTime(audio.currentTime);
+  document.getElementById("duration").textContent = formatTime(audio.duration);
+}
+function seek(e) {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const percent = x / rect.width;
+  audio.currentTime = percent * audio.duration;
+}
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60).toString().padStart(2, "0");
+  return `${m}:${s}`;
+}
+
+// UPDATE UI
+function updatePlaylistUI() {
+  const ul = document.getElementById("playlist");
+  ul.innerHTML = "";
+  playlist.forEach((song, i) => {
+    const li = document.createElement("li");
+    li.textContent = song.name;
+    if (i === currentIndex) li.classList.add("active");
+    li.onclick = () => {
+      currentIndex = i;
+      loadSong(i);
+    };
+    ul.appendChild(li);
+  });
+}
+
+// SAVE TO LOCALSTORAGE
+function saveData() {
+  localStorage.setItem("playlist", JSON.stringify(playlist));
+  localStorage.setItem("currentIndex", currentIndex);
+}
+</script>
+</body>
+</html>
