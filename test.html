@@ -369,7 +369,18 @@
         store.add({ data });
         tx.oncomplete = tampilkanFoto;
       };
-      store.add({ blob: file, waktu: Date.now() });
+      store.add({ blob: blob, nama: file.name, type: file.type, waktu: Date.now() }).onsuccess = () => {
+  console.log("✅ Video berhasil disimpan:", file.name);
+}
+
+tx.oncomplete = function () {
+  console.log("Video berhasil disimpan");
+  tampilkanVideo();
+};
+tx.onerror = function (e) {
+  console.error("Gagal simpan video", e.target.error);
+};
+
     }
 
     function tampilkanFoto() {
@@ -425,6 +436,7 @@
         videoDB.createObjectStore("video", { keyPath: "id", autoIncrement: true });
       }
     };
+    
     videoRequest.onsuccess = function (e) {
       videoDB = e.target.result;
       tampilkanVideo();
@@ -433,6 +445,36 @@
     function simpanVideo(event) {
   const file = event.target.files[0];
   if (!file) return;
+
+function simpanVideo(event) {
+  if (!videoDB) {
+    alert("Database belum siap, silakan tunggu sebentar lalu coba lagi.");
+    return;
+  }
+
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function () {
+    const arrayBuffer = reader.result;
+    const blob = new Blob([arrayBuffer], { type: file.type });
+
+    const tx = videoDB.transaction("video", "readwrite");
+    const store = tx.objectStore("video");
+    const req = store.add({
+      blob: blob,
+      nama: file.name,
+      type: file.type,
+      waktu: Date.now()
+    });
+    req.onsuccess = () => {
+      console.log("✅ Video berhasil disimpan:", file.name);
+    };
+    tx.oncomplete = tampilkanVideo;
+  };
+  reader.readAsArrayBuffer(file);
+}
 
   const reader = new FileReader();
   reader.onload = function () {
@@ -488,7 +530,8 @@
       store.delete(id);
       tx.oncomplete = tampilkanVideo;
     }
-  </script>
+    
+      </script>
   
   <script>
   let audio = new Audio();
