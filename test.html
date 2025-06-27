@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>iPhone Style App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f5f7;
+      overflow: hidden;
+    }
+    .homescreen {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      padding: 40px 20px;
+      justify-items: center;
+    }
+    .app-icon {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+    }
+    .app-icon img {
+      width: 60px;
+      height: 60px;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .app-icon span {
+      margin-top: 8px;
+      font-size: 14px;
+      color: #333;
+    }
+    .app-screen {
+      display: none;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: white;
+      z-index: 10;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+    .app-screen.active {
+      display: block;
+    }
+    .back-btn {
+      margin-bottom: 20px;
+      font-size: 16px;
+      cursor: pointer;
+      color: #007aff;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      margin-bottom: 10px;
+    }
+    ul { list-style: none; padding: 0; }
+    li { background: #eee; margin: 5px 0; padding: 10px; border-radius: 5px; position: relative; }
+    .btn-small {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      cursor: pointer;
+      color: red;
+    }
+    .btn-edit {
+      position: absolute;
+      right: 40px;
+      top: 10px;
+      cursor: pointer;
+      color: #007aff;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    #spotifyPlayer {
+  text-align: center;
+  background: #121212;
+  color: #fff;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+#musicCover {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+#musicControls button {
+  margin: 10px;
+  font-size: 20px;
+  padding: 10px;
+  border: none;
+  background: #1db954;
+  color: white;
+  border-radius: 50%;
+  cursor: pointer;
+}
+#musicControls button.active {
+  background: #fff;
+  color: #1db954;
+}
+#daftarLagu {
+  margin-top: 20px;
+  text-align: left;
+}
+#daftarLagu input, #daftarLagu select {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+#listLagu li {
+  padding: 8px;
+  border-bottom: 1px solid #444;
+  cursor: pointer;
+  background: #222;
+  color: #fff;
+  border-radius: 5px;
+}
+
+  </style>
+</head>
+<body>
+  <div class="homescreen" id="homescreen">
+    <div class="app-icon" onclick="openApp('catatan')">
+      <img src="https://img.icons8.com/fluency/96/note.png" />
+      <span>Catatan</span>
+    </div>
+    <div class="app-icon" onclick="openApp('foto')">
+      <img src="https://img.icons8.com/fluency/96/picture.png" />
+      <span>Foto</span>
+    </div>
+    <div class="app-icon" onclick="openApp('video')">
+      <img src="https://img.icons8.com/fluency/96/video.png" />
+      <span>Video</span>
+    </div>
+    <div class="app-icon" onclick="openApp('musik')">
+      <img src="https://img.icons8.com/fluency/96/musical-notes.png" />
+      <span>Musik</span>
+    </div>
+    <div class="app-icon" onclick="openApp('dokumen')">
+      <img src="https://img.icons8.com/fluency/96/document.png" />
+      <span>Dokumen</span>
+    </div>
+  </div>
+
+  <!-- Catatan -->
+  <div id="catatan" class="app-screen">
+    <div class="back-btn" onclick="backHome()">&larr; Kembali</div>
+    <h2>Catatan</h2>
+    <textarea id="inputCatatan" placeholder="Tulis catatan..."></textarea>
+    <button onclick="simpanCatatan()" id="btnSimpan">Simpan</button>
+    <button onclick="updateCatatan()" id="btnUpdate" style="display:none">Update</button>
+    <ul id="daftarCatatan"></ul>
+  </div>
+
+  <!-- Foto -->
+  <div id="foto" class="app-screen">
+    <div class="back-btn" onclick="backHome()">&larr; Kembali</div>
+    <h2>Galeri Foto</h2>
+    <input type="file" accept="image/*" onchange="simpanFoto(event)">
+    <div id="galeriFoto" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px;"></div>
+  </div>
+
+  <!-- Video -->
+  <div id="video" class="app-screen">
+    <div class="back-btn" onclick="backHome()">&larr; Kembali</div>
+    <h2>Galeri Video</h2>
+    <input type="file" accept="video/*" onchange="simpanVideo(event)">
+    <div id="galeriVideo" style="margin-top: 10px; display: flex; flex-direction: column; gap: 15px;"></div>
+  </div>
+
+<!-- GANTI seluruh <div id="musik" class="app-screen">...</div> DENGAN INI -->
+<div id="musik" class="app-screen">
+  <div class="back-btn" onclick="backHome()">&larr; Kembali</div>
+  <div id="spotifyPlayer">
+    <div id="musicHeader">
+      <img id="musicCover" src="https://img.icons8.com/color/200/spotify--v1.png" alt="cover" />
+      
+      <h2 id="nowPlaying">Belum ada lagu</h2>
+    </div>
+    <div id="musicControls">
+
+      <div id="progressContainer" style="margin:10px 0">
+  <input type="range" id="progress" value="0" min="0" max="100" step="1" style="width: 100%;">
+  <div style="display:flex; justify-content:space-between; font-size:12px;">
+    <span id="currentTime">0:00</span>
+    <span id="duration">0:00</span>
+  </div>
+</div>
+
+      <button onclick="prevLagu()">⏮️</button>
+      <button onclick="togglePlayPause()" id="playBtn">▶️</button>
+      <button onclick="nextLagu()">⏭️</button>
+      <button onclick="toggleAcak()" id="acakBtn">🔀</button>
+      <button onclick="toggleUrut()" id="urutBtn">🔁</button>
+      </div>
+    <div id="daftarLagu" style="display:none">
+      <input type="text" id="cariLagu" oninput="filterLagu()" placeholder="Cari lagu...">
+      <select id="urutkan" onchange="urutkanLagu()">
+        <option value="az">A-Z</option>
+        <option value="baru">Terbaru</option>
+      </select>
+      <ul id="listLagu"></ul>
+    </div>
+     <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
+  <input type="file" accept="audio/*" onchange="simpanLagu(event)" />
+  <button onclick="toggleDaftar()" style="margin-left: 10px; font-size: 20px;">🎧</button>
+</div>
+  </div>
+</div>
+
+<!-- Dokumen -->
+<div id="dokumen" class="app-screen">
+  <div class="back-btn" onclick="backHome()">&larr; Kembali</div>
+  <h2>Dokumen</h2>
+  <input type="file" accept=".txt,.doc,.docx,.pdf" onchange="simpanDokumen(event)">
+  <select id="sortDokumen" onchange="urutkanDokumen()" style="margin-top:10px">
+    <option value="baru">Terbaru</option>
+    <option value="az">A-Z</option>
+  </select>
+  <ul id="daftarDokumen" style="margin-top: 10px;"></ul>
+</div>
+
+<div id="previewDokumen" class="app-screen">
+  <div class="back-btn" onclick="tutupPreviewDokumen()">&larr; Kembali</div>
+  <iframe id="iframeDokumen" style="width:100%; height:90vh; border:none;"></iframe>
+</div>
+
+  <script>indexedDB.deleteDatabase("VideoDB");
+
+    let db;
+    let editId = null;
+
+    function openApp(id) {
+      document.getElementById('homescreen').style.display = 'none';
+      document.getElementById(id).classList.add('active');
+    }
+
+    function backHome() {
+      document.getElementById('homescreen').style.display = 'grid';
+      document.querySelectorAll('.app-screen').forEach(el => el.classList.remove('active'));
+      resetForm();
+    }
+
+    const request = indexedDB.open("iPhoneAppDB", 1);
+    request.onupgradeneeded = function (e) {
+      db = e.target.result;
+      if (!db.objectStoreNames.contains("catatan")) {
+        db.createObjectStore("catatan", { keyPath: "id", autoIncrement: true });
+      }
+    };
+    request.onsuccess = function (e) {
+      db = e.target.result;
+      tampilkanCatatan();
+    };
+
+    function simpanCatatan() {
+      const isi = document.getElementById("inputCatatan").value;
+      if (!isi) return;
+      const tx = db.transaction("catatan", "readwrite");
+      const store = tx.objectStore("catatan");
+      store.add({ isi });
+      tx.oncomplete = () => {
+        resetForm();
+        tampilkanCatatan();
+      };
+    }
+
+    function tampilkanCatatan() {
+      const ul = document.getElementById("daftarCatatan");
+      ul.innerHTML = "";
+      const tx = db.transaction("catatan", "readonly");
+      const store = tx.objectStore("catatan");
+      const req = store.openCursor();
+      req.onsuccess = function (e) {
+        const cursor = e.target.result;
+        if (cursor) {
+          const li = document.createElement("li");
+          li.textContent = cursor.value.isi;
+          const del = document.createElement("span");
+          del.textContent = "✕";
+          del.className = "btn-small";
+          del.onclick = () => hapusCatatan(cursor.value.id);
+
+          const edit = document.createElement("span");
+          edit.textContent = "✏️";
+          edit.className = "btn-edit";
+          edit.onclick = () => mulaiEditCatatan(cursor.value.id, cursor.value.isi);
+
+          li.appendChild(del);
+          li.appendChild(edit);
+          ul.appendChild(li);
+          cursor.continue();
+        }
+      };
+    }
+
+    function hapusCatatan(id) {
+      const tx = db.transaction("catatan", "readwrite");
+      const store = tx.objectStore("catatan");
+      store.delete(id);
+      tx.oncomplete = tampilkanCatatan;
+    }
+
+    function mulaiEditCatatan(id, isi) {
+      document.getElementById("inputCatatan").value = isi;
+      editId = id;
+      document.getElementById("btnSimpan").style.display = "none";
+      document.getElementById("btnUpdate").style.display = "inline";
+    }
+
+    function updateCatatan() {
+      const isi = document.getElementById("inputCatatan").value;
+      if (!isi || editId === null) return;
+      const tx = db.transaction("catatan", "readwrite");
+      const store = tx.objectStore("catatan");
+      store.put({ id: editId, isi });
+      tx.oncomplete = () => {
+        resetForm();
+        tampilkanCatatan();
+      };
+    }
+
+    function resetForm() {
+      document.getElementById("inputCatatan").value = "";
+      editId = null;
+      document.getElementById("btnSimpan").style.display = "inline";
+      document.getElementById("btnUpdate").style.display = "none";
+    }
+
+    // FOTO
+    let fotoDB;
+    const fotoRequest = indexedDB.open("FotoDB", 1);
+    fotoRequest.onupgradeneeded = function (e) {
+      fotoDB = e.target.result;
+      if (!fotoDB.objectStoreNames.contains("foto")) {
+        fotoDB.createObjectStore("foto", { keyPath: "id", autoIncrement: true });
+      }
+    };
+    fotoRequest.onsuccess = function (e) {
+      fotoDB = e.target.result;
+      tampilkanFoto();
+    };
+
+    function simpanFoto(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function () {
+        const data = reader.result;
+        const tx = fotoDB.transaction("foto", "readwrite");
+        const store = tx.objectStore("foto");
+        store.add({ data });
+        tx.oncomplete = tampilkanFoto;
+      };
+      store.add({ blob: file, waktu: Date.now() });
+    }
+
+    function tampilkanFoto() {
+      const kontainer = document.getElementById("galeriFoto");
+      kontainer.innerHTML = "";
+      const tx = fotoDB.transaction("foto", "readonly");
+      const store = tx.objectStore("foto");
+      const req = store.openCursor();
+      req.onsuccess = function (e) {
+        const cursor = e.target.result;
+        if (cursor) {
+          const div = document.createElement("div");
+          div.style.position = "relative";
+          const img = document.createElement("img");
+          img.src = cursor.value.data;
+          img.style.width = "100px";
+          img.style.height = "100px";
+          img.style.objectFit = "cover";
+          img.style.borderRadius = "10px";
+
+          const del = document.createElement("span");
+          del.textContent = "✕";
+          del.style.position = "absolute";
+          del.style.top = "5px";
+          del.style.right = "5px";
+          del.style.background = "#fff";
+          del.style.borderRadius = "50%";
+          del.style.padding = "2px 6px";
+          del.style.cursor = "pointer";
+          del.onclick = () => hapusFoto(cursor.value.id);
+
+          div.appendChild(img);
+          div.appendChild(del);
+          kontainer.appendChild(div);
+          cursor.continue();
+        }
+      };
+    }
+
+    function hapusFoto(id) {
+      const tx = fotoDB.transaction("foto", "readwrite");
+      const store = tx.objectStore("foto");
+      store.delete(id);
+      tx.oncomplete = tampilkanFoto;
+    }
+
+    // VIDEO
+    let videoDB;
+    const videoRequest = indexedDB.open("VideoDB", 1);
+    videoRequest.onupgradeneeded = function (e) {
+      videoDB = e.target.result;
+      if (!videoDB.objectStoreNames.contains("video")) {
+        videoDB.createObjectStore("video", { keyPath: "id", autoIncrement: true });
+      }
+    };
+    videoRequest.onsuccess = function (e) {
+      videoDB = e.target.result;
+      tampilkanVideo();
+    };
+
+    function simpanVideo(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function () {
+    const arrayBuffer = reader.result;
+    const blob = new Blob([arrayBuffer], { type: file.type }); // bikin blob valid
+
+    const tx = videoDB.transaction("video", "readwrite");
+    const store = tx.objectStore("video");
+    store.add({ blob: blob, nama: file.name, type: file.type, waktu: Date.now() });
+    tx.oncomplete = tampilkanVideo;
+  };
+  reader.readAsArrayBuffer(file); // PAKAI readAsArrayBuffer agar blob valid
+}
+
+  function tampilkanVideo() {
+  const container = document.getElementById("galeriVideo");
+  container.innerHTML = "";
+  const tx = videoDB.transaction("video", "readonly");
+  const store = tx.objectStore("video");
+  const req = store.openCursor();
+  req.onsuccess = function (e) {
+    const cursor = e.target.result;
+    if (cursor) {
+      const wrapper = document.createElement("div");
+      const video = document.createElement("video");
+
+      // GANTI baris ini:
+      // video.src = cursor.value.data;
+      // JADI:
+      video.src = URL.createObjectURL(cursor.value.blob);
+
+      video.controls = true;
+      video.style.width = "100%";
+      video.style.maxHeight = "200px";
+      video.style.borderRadius = "10px";
+
+      const del = document.createElement("button");
+      del.textContent = "Hapus";
+      del.style.marginTop = "5px";
+      del.onclick = () => hapusVideo(cursor.value.id);
+
+      wrapper.appendChild(video);
+      wrapper.appendChild(del);
+      container.appendChild(wrapper);
+      cursor.continue();
+    }
+  };
+}
+
+    function hapusVideo(id) {
+      const tx = videoDB.transaction("video", "readwrite");
+      const store = tx.objectStore("video");
+      store.delete(id);
+      tx.oncomplete = tampilkanVideo;
+    }
+  </script>
+  
+  <script>
+  let audio = new Audio();
+  let musikDB, currentIndex = 0, laguList = [], modeAcak = false, modeUrut = false;
+
+  const musikRequest = indexedDB.open("MusikDB", 1);
+  musikRequest.onupgradeneeded = function(e) {
+    musikDB = e.target.result;
+    if (!musikDB.objectStoreNames.contains("musik")) {
+      musikDB.createObjectStore("musik", { keyPath: "id", autoIncrement: true });
+    }
+  };
+  musikRequest.onsuccess = function(e) {
+    musikDB = e.target.result;
+    loadLagu();
+  };
+
+  function simpanLagu(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const tx = musikDB.transaction("musik", "readwrite");
+      const store = tx.objectStore("musik");
+      store.add({ judul: file.name, data: reader.result, waktu: Date.now() });
+      tx.oncomplete = loadLagu;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function loadLagu() {
+    laguList = [];
+    const tx = musikDB.transaction("musik", "readonly");
+    const store = tx.objectStore("musik");
+    const req = store.openCursor();
+    req.onsuccess = (e) => {
+      const cursor = e.target.result;
+      if (cursor) {
+        laguList.push({ id: cursor.value.id, judul: cursor.value.judul, data: cursor.value.data, waktu: cursor.value.waktu });
+        cursor.continue();
+      } else {
+        tampilkanDaftar();
+        if (laguList.length > 0) {
+  document.getElementById("nowPlaying").textContent = laguList[0].judul;
+  currentIndex = 0;
+}
+      }
+    };
+  }
+
+  function putarLagu(index) {
+    currentIndex = index;
+    const lagu = laguList[index];
+    audio.src = lagu.data;
+    audio.play();
+    document.getElementById("nowPlaying").textContent = lagu.judul;
+    document.getElementById("playBtn").textContent = "⏸️";
+  }
+
+  function togglePlayPause() {
+    if (audio.paused) {
+      audio.play();
+      document.getElementById("playBtn").textContent = "⏸️";
+    } else {
+      audio.pause();
+      document.getElementById("playBtn").textContent = "▶️";
+    }
+  }
+
+  function nextLagu() {
+    currentIndex = (currentIndex + 1) % laguList.length;
+    putarLagu(currentIndex);
+  }
+  function prevLagu() {
+    currentIndex = (currentIndex - 1 + laguList.length) % laguList.length;
+    putarLagu(currentIndex);
+  }
+
+  function toggleAcak() {
+    modeAcak = !modeAcak;
+    document.getElementById("acakBtn").classList.toggle("active", modeAcak);
+  }
+  function toggleUrut() {
+    modeUrut = !modeUrut;
+    document.getElementById("urutBtn").classList.toggle("active", modeUrut);
+    urutkanLagu();
+  }
+  function toggleDaftar() {
+    const panel = document.getElementById("daftarLagu");
+    panel.style.display = panel.style.display === "none" ? "block" : "none";
+  }
+  function tampilkanDaftar() {
+  const list = document.getElementById("listLagu");
+  list.innerHTML = "";
+  laguList.forEach((lagu, i) => {
+    const li = document.createElement("li");
+    li.textContent = lagu.judul;
+
+    // 🔻 Tombol hapus
+    const hapusBtn = document.createElement("span");
+    hapusBtn.textContent = "❌";
+    hapusBtn.style.float = "right";
+    hapusBtn.style.color = "red";
+    hapusBtn.style.cursor = "pointer";
+    hapusBtn.onclick = (e) => {
+      e.stopPropagation(); // agar tidak ikut klik lagu
+      hapusLagu(lagu.id);
+    };
+
+    li.appendChild(hapusBtn);
+    li.onclick = () => putarLagu(i);
+    list.appendChild(li);
+  });
+}
+  function hapusLagu(id) {
+  const tx = musikDB.transaction("musik", "readwrite");
+  const store = tx.objectStore("musik");
+  store.delete(id);
+  tx.oncomplete = loadLagu;
+  }
+  function filterLagu() {
+    const keyword = document.getElementById("cariLagu").value.toLowerCase();
+    const list = document.getElementById("listLagu");
+    list.innerHTML = "";
+    laguList.filter(lagu => lagu.judul.toLowerCase().includes(keyword)).forEach((lagu, i) => {
+      const li = document.createElement("li");
+      li.textContent = lagu.judul;
+      li.onclick = () => putarLagu(i);
+      list.appendChild(li);
+    });
+  }
+  function urutkanLagu() {
+    const tipe = document.getElementById("urutkan").value;
+    if (tipe === "az") laguList.sort((a, b) => a.judul.localeCompare(b.judul));
+    else if (tipe === "baru") laguList.sort((a, b) => b.waktu - a.waktu);
+    tampilkanDaftar();
+  }
+  
+  function togglePlayPause() {
+  if (audio.paused) {
+    audio.play();
+    document.getElementById("playBtn").textContent = "⏸️";
+  } else {
+    audio.pause();
+    document.getElementById("playBtn").textContent = "▶️";
+  }
+}
+
+audio.ontimeupdate = () => {
+  const progress = document.getElementById("progress");
+  const currentTime = document.getElementById("currentTime");
+  const duration = document.getElementById("duration");
+
+  if (audio.duration) {
+    progress.value = (audio.currentTime / audio.duration) * 100;
+    currentTime.textContent = formatWaktu(audio.currentTime);
+    duration.textContent = formatWaktu(audio.duration);
+  }
+};
+
+document.getElementById("progress").addEventListener("input", (e) => {
+  if (audio.duration) {
+    audio.currentTime = (e.target.value / 100) * audio.duration;
+  }
+});
+
+function formatWaktu(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s < 10 ? '0' + s : s}`;
+}
+</script>
+  
+  <script>
+  let dokumenDB;
+  const dokumenRequest = indexedDB.open("DokumenDB", 1);
+  dokumenRequest.onupgradeneeded = function (e) {
+    dokumenDB = e.target.result;
+    if (!dokumenDB.objectStoreNames.contains("dokumen")) {
+      dokumenDB.createObjectStore("dokumen", { keyPath: "id", autoIncrement: true });
+    }
+  };
+  dokumenRequest.onsuccess = function (e) {
+    dokumenDB = e.target.result;
+    tampilkanDokumen();
+  };
+
+  function simpanDokumen(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const tx = dokumenDB.transaction("dokumen", "readwrite");
+      const store = tx.objectStore("dokumen");
+      store.add({
+        nama: file.name,
+        data: reader.result,
+        waktu: Date.now()
+      });
+      tx.oncomplete = tampilkanDokumen;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  let listDokumen = [];
+
+  function tampilkanDokumen() {
+    listDokumen = [];
+    const tx = dokumenDB.transaction("dokumen", "readonly");
+    const store = tx.objectStore("dokumen");
+    const req = store.openCursor();
+    req.onsuccess = function (e) {
+      const cursor = e.target.result;
+      if (cursor) {
+        listDokumen.push(cursor.value);
+        cursor.continue();
+      } else {
+        urutkanDokumen();
+      }
+    };
+  }
+
+  function urutkanDokumen() {
+    const tipe = document.getElementById("sortDokumen").value;
+    if (tipe === "az") listDokumen.sort((a, b) => a.nama.localeCompare(b.nama));
+    else listDokumen.sort((a, b) => b.waktu - a.waktu);
+    renderDaftarDokumen();
+  }
+
+  function renderDaftarDokumen() {
+    const ul = document.getElementById("daftarDokumen");
+    ul.innerHTML = "";
+    listDokumen.forEach(doc => {
+      const li = document.createElement("li");
+      li.textContent = doc.nama;
+      li.style.cursor = "pointer";
+      li.onclick = () => lihatDokumen(doc);
+      const del = document.createElement("span");
+      del.textContent = "✕";
+      del.style.float = "right";
+      del.style.color = "red";
+      del.style.cursor = "pointer";
+      del.onclick = (e) => {
+        e.stopPropagation();
+        hapusDokumen(doc.id);
+      };
+      li.appendChild(del);
+      ul.appendChild(li);
+    });
+  }
+
+  function lihatDokumen(doc) {
+    const win = window.open();
+    win.document.write(`<iframe src="${doc.data}" style="width:100%;height:100%" frameborder="0"></iframe>`);
+  }
+
+  function hapusDokumen(id) {
+    const tx = dokumenDB.transaction("dokumen", "readwrite");
+    const store = tx.objectStore("dokumen");
+    store.delete(id);
+    tx.oncomplete = tampilkanDokumen;
+  }
+</script>
+<script>function lihatDokumen(doc) {
+  document.getElementById("homescreen").style.display = "none";
+  document.querySelectorAll('.app-screen').forEach(el => el.classList.remove('active'));
+  const iframe = document.getElementById("iframeDokumen");
+  iframe.src = doc.data;
+  document.getElementById("previewDokumen").classList.add("active");
+}
+
+function tutupPreviewDokumen() {
+  document.getElementById("previewDokumen").classList.remove("active");
+  backHome();
+}
+
+function lihatDokumen(doc) {
+  const ekstensi = doc.nama.split('.').pop().toLowerCase();
+
+  if (ekstensi === 'pdf' || ekstensi === 'txt') {
+    document.getElementById("homescreen").style.display = "none";
+    document.querySelectorAll('.app-screen').forEach(el => el.classList.remove('active'));
+    const iframe = document.getElementById("iframeDokumen");
+    iframe.src = doc.data;
+    document.getElementById("previewDokumen").classList.add("active");
+  } else {
+    alert("Format ini tidak bisa dipreview langsung.\nSilakan unduh file.");
+    const link = document.createElement("a");
+    link.href = doc.data;
+    link.download = doc.nama;
+    link.click();
+  }
+}
+</script>
+</body>
+  </html>
