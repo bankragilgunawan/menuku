@@ -182,9 +182,16 @@
     <div class="back-btn" onclick="backHome()">&larr; Kembali</div>
     <h2>Galeri Video</h2>
     <input type="file" accept="video/*" onchange="simpanVideo(event)">
+    
+    <div style="margin: 15px 0;">
+  <input type="text" id="judulLinkVideo" placeholder="Judul video">
+  <input type="text" id="urlLinkVideo" placeholder="Link video (mp4)">
+  <button onclick="simpanVideoLink()">Simpan</button>
+</div>
+    
     <div id="galeriVideo" style="margin-top: 10px; display: flex; flex-direction: column; gap: 15px;"></div>
   </div>
-
+    
 <!-- GANTI seluruh <div id="musik" class="app-screen">...</div> DENGAN INI -->
 <div id="musik" class="app-screen">
   <div class="back-btn" onclick="backHome()">&larr; Kembali</div>
@@ -219,7 +226,7 @@
       <ul id="listLagu"></ul>
     </div>
      <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 20px;">
-  <input type="file" accept="audio/*" onchange="simpanLagu(event)" />
+   <input type="file" accept="audio/*" multiple onchange="simpanLagu(event)" />
   <button onclick="toggleDaftar()" style="margin-left: 10px; font-size: 20px;">🎧</button>
 </div>
   </div>
@@ -451,6 +458,7 @@
       const req = store.openCursor();
       req.onsuccess = function (e) {
         const cursor = e.target.result;
+        
         if (cursor) {
           const wrapper = document.createElement("div");
           const video = document.createElement("video");
@@ -479,6 +487,18 @@
       store.delete(id);
       tx.oncomplete = tampilkanVideo;
     }
+    
+    function simpanVideoLink() {
+  const judul = document.getElementById("judulLinkVideo").value.trim();
+  const link = document.getElementById("urlLinkVideo").value.trim();
+  if (!judul || !link) return alert("Judul dan link wajib diisi");
+  const tx = videoDB.transaction("video", "readwrite");
+  const store = tx.objectStore("video");
+  store.add({ data: link, judul, external: true });
+  tx.oncomplete = tampilkanVideo;
+  document.getElementById("judulLinkVideo").value = "";
+  document.getElementById("urlLinkVideo").value = "";
+}
   </script>
   
   <script>
@@ -497,39 +517,72 @@
     loadLagu();
   };
 
-  function simpanLagu(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+function simpanLagu(event) {
+  const files = Array.from(event.target.files);
+  if (!files.length) return;
+
+  let index = 0;
+
+  function simpanBerikutnya() {
+    if (index >= files.length) {
+      loadLagu(); // reload daftar lagu setelah semua selesai
+      return;
+    }
+
+    const file = files[index];
     const reader = new FileReader();
-    reader.onload = () => {
+
+    reader.onload = function () {
       const tx = musikDB.transaction("musik", "readwrite");
       const store = tx.objectStore("musik");
-      store.add({ judul: file.name, data: reader.result, waktu: Date.now() });
-      tx.oncomplete = loadLagu;
+      const tambah = store.add({
+        judul: file.name,
+        data: reader.result,
+        waktu: Date.now()
+      });
+
+      tambah.onsuccess = function () {
+        index++;
+        simpanBerikutnya(); // lanjut ke file berikutnya
+      };
+
+      tambah.onerror = function (e) {
+        console.error("Gagal menyimpan:", e.target.error);
+        index++;
+        simpanBerikutnya(); // lanjut walau error
+      };
     };
+
     reader.readAsDataURL(file);
   }
 
-  function loadLagu() {
-    laguList = [];
-    const tx = musikDB.transaction("musik", "readonly");
-    const store = tx.objectStore("musik");
-    const req = store.openCursor();
-    req.onsuccess = (e) => {
-      const cursor = e.target.result;
-      if (cursor) {
-        laguList.push({ id: cursor.value.id, judul: cursor.value.judul, data: cursor.value.data, waktu: cursor.value.waktu });
-        cursor.continue();
-      } else {
-        tampilkanDaftar();
-        if (laguList.length > 0) {
-  document.getElementById("nowPlaying").textContent = laguList[0].judul;
-  currentIndex = 0;
+  simpanBerikutnya(); // mulai dari file pertama
 }
-      }
-    };
-  }
 
+  function loadLagu() {
+  laguList = [];
+  const tx = musikDB.transaction("musik", "readonly");
+  const store = tx.objectStore("musik");
+  const req = store.openCursor();
+  req.onsuccess = (e) => {
+    const cursor = e.target.result;
+    if (cursor) {
+      laguList.push({ id: cursor.value.id, judul: cursor.value.judul, data: cursor.value.data, waktu: cursor.value.waktu });
+      cursor.continue();
+    } else {
+      tampilkanDaftar();
+
+      // auto tampilkan panel daftar jika belum tampil
+      document.getElementById("daftarLagu").style.display = "block";
+
+      if (laguList.length > 0) {
+        document.getElementById("nowPlaying").textContent = laguList[0].judul;
+        currentIndex = 0;
+      }
+    }
+  };
+}
+document.getElementById("daftarLagu").style.display = "block";
   function putarLagu(index) {
     currentIndex = index;
     const lagu = laguList[index];
@@ -651,6 +704,11 @@ function formatWaktu(sec) {
   const s = Math.floor(sec % 60);
   return `${m}:${s < 10 ? '0' + s : s}`;
 }
+
+audio.onended = () => {
+  nextLagu();
+};
+
 </script>
   
   <script>
@@ -775,4 +833,4 @@ function lihatDokumen(doc) {
 }
 </script>
 </body>
-  </html>
+      </html>
