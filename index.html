@@ -2,19 +2,27 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>iPhone Style App</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+   <title>iPhone Style App</title>
+  <link href="https://bankragilgunawan.wordpress.com/wp-content/uploads/2025/07/ios16downloadwallpaper8519165404807008102.jpg" rel="stylesheet">
    <style>
-    body {
-      margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background-color: #f5f5f7;
-      overflow: hidden;
+ body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background-image: url('https://bankragilgunawan.wordpress.com/wp-content/uploads/2025/07/ios16downloadwallpaper8519165404807008102.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+     
     }
     .homescreen {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 20px;
       padding: 40px 20px;
       justify-items: center;
@@ -50,8 +58,9 @@
       animation: fadeIn 0.3s ease-in-out;
     }
     .app-screen.active {
-      display: block;
-    }
+  display: block !important;
+}
+       
     .back-btn {
       margin-bottom: 20px;
       font-size: 16px;
@@ -138,9 +147,6 @@ li div:nth-child(3) {
   white-space: pre-line;
 }
 
-#popupOverlay.show {
-  display: flex !important;
-}
 #popupContent.show {
   transform: scale(1);
 }
@@ -152,32 +158,209 @@ li div:nth-child(3) {
   color: #555;
 }
 
-  </style>
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+  
+#statusbar {
+  height: 30px;
+  display: flex;
+  justify-content: space-between; /* ⬅️ jarak antara kiri & kanan */
+  align-items: center;            /* ⬅️ sejajarkan vertikal */
+  padding: 0 12px;
+  color: white;
+  background: rgba(0, 0, 0, 0.25); /* transparan */
+  font-size: 13px;
+  z-index: 1000;
+  position: relative;
+}
+
+.homescreen {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 20px;
+  justify-items: start;     /* ⬅️ biar ikon nempel kiri */
+  margin-top: 40px;
+  padding-bottom: 100px;
+}
+
+#dock {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 25px;
+  padding: 10px 25px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(15px);
+  border-radius: 30px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}
+
+.dock-icon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 11px;
+  color: #222;
+}
+
+.dock-icon img {
+  width: 36px;
+  height: 36px;
+}
+
+.app-screen {
+  z-index: 2000; /* agar tampil di atas status bar */
+}
+
+max-height: 80px;
+overflow-y: auto;
+margin-bottom: 12px;
+html, body {
+  height: 100%;
+}
+
+#popupOverlay {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#popupOverlay.show {
+  opacity: 1;
+}
+
+#fullscreenFoto {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#fullscreenFoto.show {
+  opacity: 1;
+}
+
+#popupOverlay,
+#fullscreenFoto {
+  position: fixed;
+  z-index: 9999;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+}#popupOverlay {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 9999;
+}
+
+#popupOverlay.show {
+  opacity: 1;
+}
+</style>
 </head>
 <body>
-      <div class="homescreen" id="homescreen">
-    <div class="app-icon" onclick="openApp('catatan')">
-      <img src="https://img.icons8.com/fluency/96/note.png" />
-      <span>Catatan</span>
-    </div>
-    <div class="app-icon" onclick="openApp('foto')">
-      <img src="https://img.icons8.com/fluency/96/picture.png" />
-      <span>Foto</span>
-    </div>
-    <div class="app-icon" onclick="openApp('video')">
-      <img src="https://img.icons8.com/fluency/96/video.png" />
-      <span>Video</span>
-    </div>
-    <div class="app-icon" onclick="openApp('musik')">
-      <img src="https://img.icons8.com/fluency/96/musical-notes.png" />
-      <span>Musik</span>
-    </div>
-    <div class="app-icon" onclick="openApp('dokumen')">
-      <img src="https://img.icons8.com/fluency/96/document.png" />
-      <span>Dokumen</span>
-    </div>
+      
+<!-- STATUS BAR ala iPhone -->
+<div id="statusbar">
+  <div><span id="jamStatus">--:--</span></div>
+  <div style="display:flex; gap:6px; align-items:center;">
+    <img src="https://bankragilgunawan.wordpress.com/wp-content/uploads/2025/07/pngwing2955863890453965523.jpg" style="height:14px;">
+    <img src="https://bankragilgunawan.wordpress.com/wp-content/uploads/2025/07/pngwing9057784689246928017.jpg" style="height:14px;">
+    <img src="https://bankragilgunawan.wordpress.com/wp-content/uploads/2025/07/pngwing2962435936599603331.jpg" style="height:14px;">
+  </div>
+</div>
+<div class="homescreen" id="homescreen" style="
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
+  padding: 20px;
+  justify-items: center;
+">
+
+  <!-- 📅 Kalender (kotak 2x2) -->
+  <div id="kalenderWidget" onclick="openApp('kalender')" style="
+    grid-column: span 2;
+    grid-row: span 2;
+    aspect-ratio: 1 / 1;
+    max-width: 130px;
+    max-height: 130px;
+    margin-top: 15px;
+    width: 100%;
+    background: #fff;
+    border-radius: 20px;
+    padding: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    overflow: hidden;
+  ">
+    <div id="tanggalKalender" style="
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 8px;
+      color: #222;
+    "></div>
+    <ul id="daftarPengingat" style="
+      font-size: 12px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    "></ul>
   </div>
 
+  <!-- ✅ Menu ikon di samping kalender -->
+  <div class="app-icon" onclick="openApp('catatan')">
+    <img src="https://img.icons8.com/fluency/96/note.png" />
+    <span>Catatan</span>
+  </div>
+  <div class="app-icon" onclick="openApp('foto')">
+    <img src="https://img.icons8.com/fluency/96/picture.png" />
+    <span>Foto</span>
+  </div>
+  <div class="app-icon" onclick="openApp('video')">
+    <img src="https://img.icons8.com/fluency/96/video.png" />
+    <span>Video</span>
+  </div>
+  <div class="app-icon" onclick="openApp('musik')">
+    <img src="https://img.icons8.com/fluency/96/musical-notes.png" />
+    <span>Musik</span>
+  </div>
+  <div class="app-icon" onclick="openApp('dokumen')" style="grid-column: 4;">
+    <img src="https://img.icons8.com/fluency/96/document.png" />
+    <span>Dokumen</span>
+  </div>
+<div class="app-icon" onclick="openApp('catatan-keuangan')">
+  <img src="https://img.icons8.com/fluency/96/accounting.png" />
+  <span>Keuangan</span>
+</div>
+
+<div class="app-icon" onclick="openApp('nota-belanja')">
+  <img src="https://img.icons8.com/fluency/96/receipt.png" />
+  <span>Belanja</span>
+</div>
+
+<div class="app-icon" onclick="openApp('kado-cinta')">
+  <img src="https://img.icons8.com/fluency/96/like.png" />
+  <span>Kado Cinta</span>
+</div>
+
+<div class="app-icon" onclick="openApp('sicbo')">
+  <img src="https://img.icons8.com/fluency/96/dice.png" />
+  <span>Sicbo</span>
+</div>
+
+</div>
+</div>
   <!-- Catatan -->
   <div id="catatan" class="app-screen">
     <div class="back-btn" onclick="backHome()">&larr; Kembali</div>
@@ -188,9 +371,10 @@ li div:nth-child(3) {
     <ul id="daftarCatatan"></ul>
   </div>
 
-<div id="popupOverlay" onclick="tutupPopup()" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:999; justify-content:center; align-items:center;">
-  <div id="popupContent" onclick="event.stopPropagation()" style="background:white; border-radius:15px; padding:20px; max-width:90%; max-height:80%; overflow-y:auto; box-shadow:0 10px 30px rgba(0,0,0,0.3); transform:scale(0.8); transition:transform 0.3s ease;">
-    <div id="popupIsi" style="white-space:pre-line; font-size:16px;"></div>
+<div id="popupOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:999;">
+  <div id="popupContent" style="position:relative; background:white; border-radius:20px 20px 0 0; width:100%; height:100%; padding:20px; box-sizing:border-box; overflow-y:auto; animation: slideUp 0.3s ease;">
+    <button onclick="tutupPopup()" style="position:absolute; top:15px; right:15px; font-size:28px; background:none; border:none; color:#333; cursor:pointer;">×</button>
+    <div id="popupIsi" style="white-space:pre-line; font-size:16px; margin-top:40px;"></div>
   </div>
 </div>
 
@@ -288,22 +472,67 @@ li div:nth-child(3) {
   <canvas id="pdfViewer" style="width:100%; max-height:90vh; border:none;"></canvas>
   </div>
 
+<div id="kalender" class="app-screen">
+  <div class="back-btn" onclick="backHome()">&larr; Kembali</div>
+  <h2>Kalender Hari Ini</h2>
+  <p id="tanggalLengkap"></p>
+  <input type="text" id="inputPengingat" placeholder="Tambah pengingat...">
+  <button onclick="tambahPengingat()">Simpan</button>
+  <ul id="listPengingatHariIni"></ul>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
   <script>
     let db;
     let editId = null;
 
-    function openApp(id) {
-      document.getElementById('homescreen').style.display = 'none';
-      document.getElementById(id).classList.add('active');
-    }
+    function openApp(nama) {
+  const base = "https://ragil.github.io/ios-style-app/";
 
-    function backHome() {
-      document.getElementById('homescreen').style.display = 'grid';
-      document.querySelectorAll('.app-screen').forEach(el => el.classList.remove('active'));
-      resetForm();
+  // Semua app yang HARUS redirect
+  const redirectList = ['catatan-keuangan', 'nota-belanja', 'kado-cinta', 'sicbo'];
+
+const redirectMap = {
+   'catatan-keuangan': 'https://bankragilgunawan.github.io/Catatan-keuangan/',
+   'nota-belanja': 'https://bankragilgunawan.github.io/Nota/',
+   'kado-cinta': 'https://bankragilgunawan.github.io/kado/',
+   'sicbo': 'https://bankragilgunawan.github.io/prediksi-sicbo/',
+  // dan seterusnya
+};
+
+if (redirectMap[nama]) {
+  window.location.href = redirectMap[nama];
+}
+
+  if (redirectList.includes(nama)) {
+    window.location.href = base + nama + '.html';
+  } else {
+    const elemen = document.getElementById(nama);
+    if (elemen) {
+      document.getElementById('homescreen').style.display = 'none';
+      document.querySelectorAll('.app-screen').forEach(app => {
+        app.style.display = 'none';
+        app.classList.remove('active');
+      });
+      elemen.style.display = 'block';
+      elemen.classList.add('active');
+    } else {
+      console.warn("❗ ID elemen '" + nama + "' tidak ditemukan.");
     }
+  }
+}
+     function backHome() {
+  document.getElementById('homescreen').style.display = 'grid';
+
+  // Sembunyikan semua app screen
+  document.querySelectorAll('.app-screen').forEach(el => {
+    el.classList.remove('active');
+    el.style.display = 'none';
+  });
+
+  resetForm?.(); // kalau ada form
+}
 
     const request = indexedDB.open("iPhoneAppDB", 1);
     request.onupgradeneeded = function (e) {
@@ -427,12 +656,12 @@ function bukaPopupCatatan(teks) {
 
   isi.textContent = teks;
   overlay.style.display = "flex";
-  setTimeout(() => {
+
+  requestAnimationFrame(() => {
     overlay.classList.add("show");
     content.classList.add("show");
-  }, 10);
+  });
 }
-
 function tutupPopup() {
   const overlay = document.getElementById("popupOverlay");
   const content = document.getElementById("popupContent");
@@ -473,8 +702,12 @@ function tutupPopup() {
 }
 
 function bukaFotoBesar(src) {
-  document.getElementById("fotoBesar").src = src;
-  document.getElementById("fullscreenFoto").style.display = "flex";
+  const fullscreen = document.getElementById("fullscreenFoto");
+document.getElementById("fotoBesar").src = src;
+fullscreen.style.display = "flex";
+requestAnimationFrame(() => {
+  fullscreen.classList.add("show");
+});
 }
 
 function tutupFotoBesar() {
@@ -1056,6 +1289,10 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs
   }
 }
 
+function tutupPreviewDokumen() {
+  document.getElementById("previewDokumen").classList.remove("active");
+  document.getElementById("homescreen").style.display = "grid";
+}
 </script>
 <script>function lihatDokumen(doc) {
   const ekstensi = doc.nama.split('.').pop().toLowerCase();
@@ -1114,13 +1351,158 @@ function getPreviewFromBase64(base64) {
   return "[Preview tidak tersedia untuk file ini]";
 }
 
-function openApp(id) {
-  document.getElementById('homescreen').style.display = 'none';
-  document.getElementById(id).classList.add('active');
-}
 </script>
 <script>
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 </script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+</script>
+
+<script>
+  // Format dan tampilkan tanggal di widget
+  function tampilkanTanggalDanPengingat() {
+  const tanggal = new Date();
+  const opsi = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  const teksTanggal = tanggal.toLocaleDateString('id-ID', opsi);
+  document.getElementById("tanggalKalender").textContent = teksTanggal;
+
+  const key = tanggal.toISOString().slice(0, 10);
+  const pengingat = JSON.parse(localStorage.getItem("pengingat_" + key)) || [];
+
+  const ul = document.getElementById("daftarPengingat");
+  ul.innerHTML = "";
+
+  const warnaList = ["#e0f0ff", "#e0ffe0", "#fff3cd", "#fde2e2", "#dcdcff"];
+  pengingat.forEach((item, index) => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    li.style.background = warnaList[index % warnaList.length];
+    li.style.padding = "4px 8px";
+    li.style.borderRadius = "12px";
+    li.style.marginBottom = "4px";
+    li.style.fontSize = "12px";
+    li.style.color = "#333";
+    ul.appendChild(li);
+  });
+}
+  // Simpan pengingat
+  function tambahPengingat() {
+    const input = document.getElementById("inputPengingat");
+    const isi = input.value.trim();
+    if (!isi) return;
+    const tanggal = new Date().toISOString().slice(0, 10);
+    const key = "pengingat_" + tanggal;
+    const list = JSON.parse(localStorage.getItem(key)) || [];
+    list.push(isi);
+    localStorage.setItem(key, JSON.stringify(list));
+    input.value = "";
+    tampilkanDaftarPengingatLengkap();
+    tampilkanTanggalDanPengingat(); // update widget
+  }
+
+  // Tampilkan pengingat di halaman lengkap
+  function tampilkanDaftarPengingatLengkap() {
+    const tanggal = new Date();
+    const key = tanggal.toISOString().slice(0, 10);
+    const pengingat = JSON.parse(localStorage.getItem("pengingat_" + key)) || [];
+    const ul = document.getElementById("listPengingatHariIni");
+    ul.innerHTML = "";
+
+    pengingat.forEach((item, index) => {
+      const li = document.createElement("li");
+      li.textContent = "- " + item;
+
+      const hapusBtn = document.createElement("span");
+      hapusBtn.textContent = " ✕";
+      hapusBtn.style.color = "red";
+      hapusBtn.style.cursor = "pointer";
+      hapusBtn.onclick = () => {
+        pengingat.splice(index, 1);
+        localStorage.setItem(key, JSON.stringify(pengingat));
+        tampilkanDaftarPengingatLengkap();
+        tampilkanTanggalDanPengingat(); // update widget
+      };
+
+      li.appendChild(hapusBtn);
+      ul.appendChild(li);
+    });
+
+    // juga tampilkan tanggal lengkap
+    const opsi = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById("tanggalLengkap").textContent = tanggal.toLocaleDateString('id-ID', opsi);
+  }
+
+  // Jalankan saat halaman siap
+  document.addEventListener("DOMContentLoaded", () => {
+    tampilkanTanggalDanPengingat();
+  });
+</script><script>
+  function updateJamStatus() {
+    const now = new Date();
+    const jam = now.getHours().toString().padStart(2, '0');
+    const menit = now.getMinutes().toString().padStart(2, '0');
+    document.getElementById("jamStatus").textContent = jam + ":" + menit;
+  }
+
+  // Update langsung & setiap 30 detik
+  updateJamStatus();
+  setInterval(updateJamStatus, 30000);
+</script><script>
+    
+  function bukaAppLokal(nama) {
+  document.getElementById('homescreen').style.display = 'none';
+  document.querySelectorAll('.app-screen').forEach(app => {
+    app.style.display = 'none';
+    app.classList.remove('active');
+  });
+
+  const target = document.getElementById(nama);
+  if (target) {
+    target.style.display = 'block';
+    target.classList.add('active');
+  }
+}
+
+</script><script>
+  function bukaAppLokal(nama) {
+    // Sembunyikan semua app lokal dulu
+    document.querySelectorAll('.app-page').forEach(app => {
+      app.style.display = 'none';
+    });
+
+    // Tampilkan app yang dipilih
+    const target = document.getElementById('app-' + nama);
+    if (target) target.style.display = 'block';
+  }
+</script>
+
+</script>
+<!-- DOCK ala iPhone -->
+<!-- DOCK ala iPhone dengan Menu Utama -->
+<!-- DOCK ala iPhone dengan Menu Utama -->
+<div id="dock">
+  <div class="dock-icon" onclick="openApp('catatan')">
+    <img src="https://img.icons8.com/fluency/96/note.png">
+    <span>*Catatan</span>
+  </div>
+  <div class="dock-icon" onclick="openApp('foto')">
+    <img src="https://img.icons8.com/fluency/96/picture.png">
+    <span>*Foto</span>
+  </div>
+  <div class="dock-icon" onclick="openApp('video')">
+    <img src="https://img.icons8.com/fluency/96/video.png">
+    <span>*Video</span>
+  </div>
+  <div class="dock-icon" onclick="openApp('musik')">
+    <img src="https://img.icons8.com/fluency/96/musical-notes.png">
+    <span>*Musik</span>
+  </div>
+  <div class="dock-icon" onclick="openApp('dokumen')">
+    <img src="https://img.icons8.com/fluency/96/document.png">
+    <span>*Dokumen</span>
+  </div>
+</div>
+</div>
 </body>
   </html>
