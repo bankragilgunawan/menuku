@@ -631,14 +631,19 @@
                     margin: 10,
                     filename: 'struk-pesanan.pdf',
                     image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
+                    html2canvas: { 
+                        scale: 2, 
+                        useCORS: true, 
+                        allowTaint: true,
+                        backgroundColor: '#ffffff'
+                    },
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
                 };
 
                 html2pdf().set(opt).from(receipt).save();
             }
 
-            // Download Image using html2canvas
+            // Download Image using html2canvas with CORS support
             function downloadImage() {
                 const receipt = document.getElementById('receipt');
                 if (receipt.textContent.includes('Belum ada pesanan')) {
@@ -649,30 +654,69 @@
                 // Show loading
                 document.getElementById('loading').style.display = 'block';
 
-                // Use html2canvas to convert to image
-                html2canvas(receipt, {
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff'
-                }).then(function(canvas) {
-                    // Hide loading
-                    document.getElementById('loading').style.display = 'none';
+                // Create a temporary image to preload the logo
+                const logoImg = new Image();
+                logoImg.crossOrigin = "anonymous";
+                logoImg.src = "https://bankragilgunawan.wordpress.com/wp-content/uploads/2025/07/10000107376979112625138413541.png";
+                
+                logoImg.onload = function() {
+                    // Replace the logo in the receipt with the preloaded image
+                    const receiptLogo = document.querySelector('.logo');
+                    receiptLogo.src = logoImg.src;
                     
-                    // Create image from canvas
-                    const imgData = canvas.toDataURL('image/png');
-                    
-                    // Create download link
-                    const link = document.createElement('a');
-                    link.download = 'struk-pesanan.png';
-                    link.href = imgData;
-                    link.click();
-                }).catch(function(error) {
-                    // Hide loading
-                    document.getElementById('loading').style.display = 'none';
-                    showError('Gagal membuat gambar: ' + error.message);
-                    console.error('Error:', error);
-                });
+                    // Use html2canvas to convert to image
+                    html2canvas(receipt, {
+                        scale: 2,
+                        useCORS: true,
+                        allowTaint: true,
+                        backgroundColor: '#ffffff',
+                        logging: false
+                    }).then(function(canvas) {
+                        // Hide loading
+                        document.getElementById('loading').style.display = 'none';
+                        
+                        // Create image from canvas
+                        const imgData = canvas.toDataURL('image/png');
+                        
+                        // Create download link
+                        const link = document.createElement('a');
+                        link.download = 'struk-pesanan.png';
+                        link.href = imgData;
+                        link.click();
+                    }).catch(function(error) {
+                        // Hide loading
+                        document.getElementById('loading').style.display = 'none';
+                        showError('Gagal membuat gambar: ' + error.message);
+                        console.error('Error:', error);
+                    });
+                };
+                
+                logoImg.onerror = function() {
+                    // If there's an error loading the image, try without CORS
+                    html2canvas(receipt, {
+                        scale: 2,
+                        useCORS: false,
+                        allowTaint: true,
+                        backgroundColor: '#ffffff'
+                    }).then(function(canvas) {
+                        // Hide loading
+                        document.getElementById('loading').style.display = 'none';
+                        
+                        // Create image from canvas
+                        const imgData = canvas.toDataURL('image/png');
+                        
+                        // Create download link
+                        const link = document.createElement('a');
+                        link.download = 'struk-pesanan.png';
+                        link.href = imgData;
+                        link.click();
+                    }).catch(function(error) {
+                        // Hide loading
+                        document.getElementById('loading').style.display = 'none';
+                        showError('Gagal membuat gambar: ' + error.message);
+                        console.error('Error:', error);
+                    });
+                };
             }
 
             // Print receipt
