@@ -370,7 +370,7 @@
             <div class="output-section">
                 <div class="receipt" id="receipt">
                     <div class="receipt-header">
-                        <img src="https://bankragilgunawan.wordpress.com/wp-content/uploads/2025/07/10000107376979112625138413541.png" alt="Logo" class="logo">
+                        <img src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png" alt="Logo" class="logo">
                         <div class="receipt-date" id="dateDisplay"></div>
                     </div>
 
@@ -643,7 +643,7 @@
                 html2pdf().set(opt).from(receipt).save();
             }
 
-            // Download Image using html2canvas with CORS support
+            // Download Image using html2canvas with CORS workaround
             function downloadImage() {
                 const receipt = document.getElementById('receipt');
                 if (receipt.textContent.includes('Belum ada pesanan')) {
@@ -654,28 +654,30 @@
                 // Show loading
                 document.getElementById('loading').style.display = 'block';
 
-                // Create a temporary image to preload the logo
-                const logoImg = new Image();
-                logoImg.crossOrigin = "anonymous";
-                logoImg.src = "https://bankragilgunawan.wordpress.com/wp-content/uploads/2025/07/10000107376979112625138413541.png";
+                // Create a canvas element
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
                 
-                logoImg.onload = function() {
-                    // Replace the logo in the receipt with the preloaded image
-                    const receiptLogo = document.querySelector('.logo');
-                    receiptLogo.src = logoImg.src;
+                // Set canvas size
+                canvas.width = 400;
+                canvas.height = 600;
+                ctx.fillStyle = 'white';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw the receipt content
+                html2canvas(receipt, {
+                    scale: 2,
+                    useCORS: false,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    width: 400,
+                    height: 600
+                }).then(function(canvasContent) {
+                    // Draw the content to our canvas
+                    ctx.drawImage(canvasContent, 0, 0, 400, 600);
                     
-                    // Use html2canvas to convert to image
-                    html2canvas(receipt, {
-                        scale: 2,
-                        useCORS: true,
-                        allowTaint: true,
-                        backgroundColor: '#ffffff',
-                        logging: false
-                    }).then(function(canvas) {
-                        // Hide loading
-                        document.getElementById('loading').style.display = 'none';
-                        
-                        // Create image from canvas
+                    // Convert to data URL
+                    try {
                         const imgData = canvas.toDataURL('image/png');
                         
                         // Create download link
@@ -683,40 +685,21 @@
                         link.download = 'struk-pesanan.png';
                         link.href = imgData;
                         link.click();
-                    }).catch(function(error) {
+                        
+                        // Hide loading
+                        document.getElementById('loading').style.display = 'none';
+                    } catch (error) {
                         // Hide loading
                         document.getElementById('loading').style.display = 'none';
                         showError('Gagal membuat gambar: ' + error.message);
                         console.error('Error:', error);
-                    });
-                };
-                
-                logoImg.onerror = function() {
-                    // If there's an error loading the image, try without CORS
-                    html2canvas(receipt, {
-                        scale: 2,
-                        useCORS: false,
-                        allowTaint: true,
-                        backgroundColor: '#ffffff'
-                    }).then(function(canvas) {
-                        // Hide loading
-                        document.getElementById('loading').style.display = 'none';
-                        
-                        // Create image from canvas
-                        const imgData = canvas.toDataURL('image/png');
-                        
-                        // Create download link
-                        const link = document.createElement('a');
-                        link.download = 'struk-pesanan.png';
-                        link.href = imgData;
-                        link.click();
-                    }).catch(function(error) {
-                        // Hide loading
-                        document.getElementById('loading').style.display = 'none';
-                        showError('Gagal membuat gambar: ' + error.message);
-                        console.error('Error:', error);
-                    });
-                };
+                    }
+                }).catch(function(error) {
+                    // Hide loading
+                    document.getElementById('loading').style.display = 'none';
+                    showError('Gagal membuat gambar: ' + error.message);
+                    console.error('Error:', error);
+                });
             }
 
             // Print receipt
