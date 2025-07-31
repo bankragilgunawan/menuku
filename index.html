@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Struk Pesanan Generator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -370,7 +369,7 @@
             <div class="output-section">
                 <div class="receipt" id="receipt">
                     <div class="receipt-header">
-                        <img src="https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png" alt="Logo" class="logo">
+                        <img src="https://bankragilgunawan.wordpress.com/wp-content/uploads/2025/07/10000107376979112625138413541.png" alt="Logo" class="logo">
                         <div class="receipt-date" id="dateDisplay"></div>
                     </div>
 
@@ -643,7 +642,7 @@
                 html2pdf().set(opt).from(receipt).save();
             }
 
-            // Download Image using html2canvas with CORS workaround
+            // Download Image using native browser functionality
             function downloadImage() {
                 const receipt = document.getElementById('receipt');
                 if (receipt.textContent.includes('Belum ada pesanan')) {
@@ -651,55 +650,46 @@
                     return;
                 }
 
-                // Show loading
-                document.getElementById('loading').style.display = 'block';
-
-                // Create a canvas element
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                // Set canvas size
-                canvas.width = 400;
-                canvas.height = 600;
-                ctx.fillStyle = 'white';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Draw the receipt content
-                html2canvas(receipt, {
-                    scale: 2,
-                    useCORS: false,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff',
-                    width: 400,
-                    height: 600
-                }).then(function(canvasContent) {
-                    // Draw the content to our canvas
-                    ctx.drawImage(canvasContent, 0, 0, 400, 600);
-                    
-                    // Convert to data URL
-                    try {
-                        const imgData = canvas.toDataURL('image/png');
-                        
-                        // Create download link
-                        const link = document.createElement('a');
-                        link.download = 'struk-pesanan.png';
-                        link.href = imgData;
-                        link.click();
-                        
-                        // Hide loading
-                        document.getElementById('loading').style.display = 'none';
-                    } catch (error) {
-                        // Hide loading
-                        document.getElementById('loading').style.display = 'none';
-                        showError('Gagal membuat gambar: ' + error.message);
-                        console.error('Error:', error);
-                    }
-                }).catch(function(error) {
-                    // Hide loading
-                    document.getElementById('loading').style.display = 'none';
-                    showError('Gagal membuat gambar: ' + error.message);
-                    console.error('Error:', error);
-                });
+                // Create a new window with just the receipt
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>Struk Pesanan</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; padding: 20px; }
+                                .receipt { 
+                                    width: 400px; 
+                                    margin: 0 auto; 
+                                    padding: 30px; 
+                                    border: 1px dashed #ddd; 
+                                    border-radius: 10px;
+                                    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+                                }
+                                .receipt-header { text-align: center; margin-bottom: 20px; }
+                                .logo { width: 120px; height: 120px; object-fit: contain; margin: 0 auto 15px; display: block; }
+                                .receipt-date { color: #666; margin-bottom: 10px; }
+                                .receipt-info-item { display: flex; justify-content: space-between; margin-bottom: 8px; }
+                                .items { border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 15px 0; }
+                                .item-row { display: flex; justify-content: space-between; margin-bottom: 12px; }
+                                .totals { margin-top: 20px; }
+                                .grand-total { font-size: 18px; font-weight: bold; color: #e53e3e; border-top: 2px solid #eee; padding-top: 10px; }
+                                .footer { text-align: center; margin-top: 20px; color: #666; }
+                            </style>
+                        </head>
+                        <body>
+                            ${receipt.outerHTML}
+                            <script>
+                                setTimeout(() => {
+                                    alert('Untuk menyimpan sebagai gambar, gunakan screenshot atau fitur "Print" dan pilih "Save as PDF" lalu konversi ke gambar.');
+                                    window.print();
+                                    window.close();
+                                }, 500);
+                            <\/script>
+                        </body>
+                    </html>
+                `);
+                printWindow.document.close();
             }
 
             // Print receipt
